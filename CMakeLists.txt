@@ -2,7 +2,7 @@
 # $Copyright$
 #
 cmake_minimum_required(VERSION 3.12)
-project(stm32f1-minimal)
+project(stm32f1-bluepill-mousemove)
 
 ###############################################################################
 # Enable C++17 Support according to:
@@ -27,9 +27,12 @@ include(common/Coverage.cmake)
 set(TARGET_NAME     firmware)
 set(TARGET_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UsbDescriptors.cpp
 )
 
 set(STM32_BOARD   STM32F1_BluePill    CACHE STRING "STM32 Board Type")
+
+add_definitions("-DUSB_DEBUG")
 
 ###############################################################################
 # Include a common CMake File that contains the stuff which would normally go
