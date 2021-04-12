@@ -148,7 +148,7 @@ extern const struct UsbConfigurationDescriptor_s {
         .m_bEndpointAddress         = 0x81,
         .m_bmAttributes             = 3,    // IRQ
         .m_wMaxPacketSize = {
-            .m_loByte               = 8,
+            .m_loByte               = 3,
             .m_hiByte               = 0
         },
         .m_bInterval                = 0x0A

@@ -138,7 +138,7 @@ static gpio::AlternateFnPin             usb_pin_dm(gpio_engine_A, 11);
 static gpio::AlternateFnPin             usb_pin_dp(gpio_engine_A, 12);
 
 alignas(4) UsbAlloc<64>     EP0_BUF         USB_MEM;
-alignas(4) UsbAlloc<16>     IN_EP1_BUF      USB_MEM;
+alignas(4) UsbAlloc<8>      IN_EP1_BUF      USB_MEM;
 
 static stm32::f1::usb::UsbFullSpeedCoreT<
   decltype(nvic),
@@ -166,14 +166,26 @@ static stm32::Usb::CtrlOutEndpoint                              defaultCtrlOutEn
 static usb::UsbMouseApplicationT                 usbMouseApplication(usbInterface);
 
 /*******************************************************************************
+ * Mouse Move Enable Pin
+ ******************************************************************************/
+static gpio::DigitalInPinT< gpio::PinPolicy::Termination_e::e_PullUp > enable_fn(gpio_engine_B, 7);
+
+static bool
+isEnabled(void) {
+    return !enable_fn.get();
+}
+
+/*******************************************************************************
  * Tasks
  ******************************************************************************/
 static tasks::HeartbeatT<decltype(g_led_green)> heartbeat_gn("hrtbt_g", g_led_green, 3, 500);
+
 static tasks::UsbMouseMoverT<
     decltype(usbMouseApplication),
-    tasks::UsbMouseMover::CircleT< /* nRadius = */ 50, /* nSpeed = */ 4>
+    tasks::UsbMouseMover::MovePolicy::CircleT< /* nRadius = */ 50, /* nSpeed = */ 4>,
+    tasks::UsbMouseMover::EnabledPolicy::CallbackFunctionT<isEnabled>
 >
-usb_move("usb_move", /* p_priority */ 4, /* p_periodMs */ 500, usbMouseApplication);
+usb_move("usb_move", /* p_priority */ 4, /* p_periodMs */ 20, usbMouseApplication);
 
 /*******************************************************************************
  * Queues for Task Communication
@@ -249,7 +261,6 @@ bad:
 #endif
 }
 
-#if 1
 void
 debug_printf(const char * const p_fmt, ...) {
     va_list va;
@@ -259,7 +270,6 @@ debug_printf(const char * const p_fmt, ...) {
 
     va_end(va);
 }
-#endif
 
 /*******************************************************************************
  * Interrupt Handlers
