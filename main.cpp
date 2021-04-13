@@ -182,7 +182,7 @@ static tasks::HeartbeatT<decltype(g_led_green)> heartbeat_gn("hrtbt_g", g_led_gr
 
 static tasks::UsbMouseMoverT<
     decltype(usbMouseApplication),
-    tasks::UsbMouseMover::MovePolicy::CircleT< /* nRadius = */ 50, /* nSpeed = */ 4>,
+    tasks::UsbMouseMover::MovePolicy::CircleT< /* nRadius = */ 100, /* nSpeed = */ 1>,
     tasks::UsbMouseMover::EnabledPolicy::CallbackFunctionT<isEnabled>
 >
 usb_move("usb_move", /* p_priority */ 4, /* p_periodMs */ 20, usbMouseApplication);
