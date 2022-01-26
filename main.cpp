@@ -110,7 +110,28 @@ static gpio::GpioEngine                 gpio_engine_B(&gpio_B);
  * LEDs
  ******************************************************************************/
 static gpio::AlternateFnPin             g_mco1(gpio_engine_A, 8);
-static gpio::DigitalOutPin              g_led_green(gpio_engine_B, 12);
+static gpio::DigitalOutPin              g_led_green(gpio_engine_B, 2);
+
+/*******************************************************************************
+ * Debug Pins
+ ******************************************************************************/
+static gpio::DigitalOutPinT< ::gpio::PinPolicy::Termination_e::e_None >   debugPin0(gpio_engine_A, 0);
+static gpio::DigitalOutPinT< ::gpio::PinPolicy::Termination_e::e_None >   debugPin1(gpio_engine_A, 1);
+static gpio::DigitalOutPinT< ::gpio::PinPolicy::Termination_e::e_None >   debugPin2(gpio_engine_A, 2);
+static gpio::DigitalOutPinT< ::gpio::PinPolicy::Termination_e::e_None >   debugPin3(gpio_engine_A, 3);
+static gpio::DigitalOutPinT< ::gpio::PinPolicy::Termination_e::e_None >   debugPin4(gpio_engine_A, 4);
+static gpio::DigitalOutPinT< ::gpio::PinPolicy::Termination_e::e_None >   debugPin5(gpio_engine_A, 5);
+
+static constexpr
+std::array
+debugPins {
+    &debugPin0, //  USB_LP_CAN1_RX0_IRQHandler
+    &debugPin1, //  USB Ctrl Pipe -- State Bit #0
+    &debugPin2, //  USB Ctrl Pipe -- State Bit #1
+    &debugPin3, //  USB Ctrl Pipe -- State Bit #2
+    &debugPin4, //  Ctrl OUT Endp -- Data Toggle
+    &debugPin5, //  Ctrl IN Endp -- Data Toggle
+};
 
 /*******************************************************************************
  * SWO Trace via the Cortex M4 Debug Infrastructure
@@ -218,6 +239,10 @@ int
 void
 #endif
 main(void) {
+    for (auto pin : debugPins) {
+        pin->set(false);
+    }
+
     rcc.setMCO(g_mco1, decltype(rcc)::MCOOutput_e::e_HSE, decltype(rcc)::MCOPrescaler_t::e_MCOPre_None);
 
     uart_access.setBaudRate(decltype(uart_access)::BaudRate_e::e_230400);
@@ -271,6 +296,13 @@ debug_printf(const char * const p_fmt, ...) {
     va_end(va);
 }
 
+void
+debug_setpin(const unsigned p_pin, const bool p_value) {
+    assert(p_pin < debugPins.size());
+
+    debugPins[p_pin]->set(p_value);
+}
+
 /*******************************************************************************
  * Interrupt Handlers
  ******************************************************************************/
@@ -281,7 +313,9 @@ USB_HP_CAN1_TX_IRQHandler(void) {
 
 void
 USB_LP_CAN1_RX0_IRQHandler(void) {
+    PHISCH_SETPIN(0, true);
     usbCore.handleIrq();
+    PHISCH_SETPIN(0, false);
 }
 
 void
