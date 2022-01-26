@@ -243,6 +243,28 @@ main(void) {
         pin->set(false);
     }
 
+    /*
+     *  If the Board is powered via USB, then the external Pull-up on D+ is "always on". This
+     * means the host does not detect the USB device as being re-connected if the µC is restarted
+     * e.g. from the Debugger.
+     *  We can temporarily configure the D+ µC Pin as an OpenDrain output and pull it towards GND.
+     * This will trigger the Host to re-enumerate the USB.
+     *
+     *  Once USB Device is enabled, the D+ µC GPIO Pin is directly connected to the Peripheral.
+     * See STM32F1 CPU Reference Manual RM0008 Rev 20 on pg. 168 (Sect. 9.1.11, Table 29).
+     * Therefore, the USB Hardware must not be started before the USB D+ Pin has been
+     * toggled via the Code below.
+     *
+     *  The Code below should be on a temporary stack frame as that will cause the DigitalOutPinT<>
+     * object's destructor to run. The destructor calls the disable() method which will re-set the
+     * Pin to its default state (Floating Input).
+     */
+    {
+        const ::gpio::DigitalOutPinT<::gpio::PinPolicy::Termination_e::e_PullUp> usb_rst(gpio_engine_A, 12);
+        usb_rst.set(false);
+        for (unsigned cnt = 100; cnt != 0; --cnt) __NOP();
+    }
+
     rcc.setMCO(g_mco1, decltype(rcc)::MCOOutput_e::e_HSE, decltype(rcc)::MCOPrescaler_t::e_MCOPre_None);
 
     uart_access.setBaudRate(decltype(uart_access)::BaudRate_e::e_230400);
