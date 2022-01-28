@@ -2,7 +2,11 @@
 # $Copyright$
 #
 cmake_minimum_required(VERSION 3.12)
-project(stm32f1-bluepill-mousemove)
+project(stm32f1-bluepill-mousemove
+        VERSION 2
+        DESCRIPTION "USB HID 'Mouse Move' Device on STM32F103 BluePill Board"
+        HOMEPAGE_URL https://github.com/PhischDotOrg/stm32f1-bluepill-mousemove
+)
 
 ###############################################################################
 # Enable C++17 Support according to:
