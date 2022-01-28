@@ -32,7 +32,7 @@ set(TARGET_SRC
 
 set(STM32_BOARD   STM32F1_BluePill    CACHE STRING "STM32 Board Type")
 
-add_definitions("-DUSB_DEBUG")
+# add_definitions("-DUSB_DEBUG")
 
 ###############################################################################
 # Include a common CMake File that contains the stuff which would normally go
