@@ -165,12 +165,12 @@ static stm32::f1::usb::UsbFullSpeedCoreT<
   decltype(nvic),
   decltype(rcc),
   decltype(usb_pin_dm)
->                                               usbCore(nvic, rcc, usb_pin_dm, usb_pin_dp, /* p_rxFifoSzInWords = */ 256);
-static stm32::Usb::UsbDevice                    usbHwDevice(usbCore);
+>                                               usbHwDevice(nvic, rcc, usb_pin_dm, usb_pin_dp, /* p_rxFifoSzInWords = */ 256);
 static stm32::Usb::CtrlInEndpoint               defaultHwCtrlInEndpoint(usbHwDevice, EP0_BUF.data, EP0_BUF.size);
+static ::usb::UsbCtrlInEndpoint                 defaultCtrlInEndpoint(defaultHwCtrlInEndpoint);
 
 static stm32::Usb::IrqInEndpoint                irqInHwEndp(usbHwDevice, IN_EP1_BUF.data, IN_EP1_BUF.size, 1);
-static usb::UsbIrqInEndpointT                   irqInEndpoint(irqInHwEndp);
+static usb::UsbIrqInEndpoint                    irqInEndpoint(irqInHwEndp);
 
 static usb::UsbHidInterface                     usbInterface(irqInEndpoint, hidMouseReportDescriptor, sizeof(hidMouseReportDescriptor));
 
@@ -178,11 +178,10 @@ static usb::UsbConfiguration                    usbConfiguration(usbInterface, u
 
 static usb::UsbDevice                           genericUsbDevice(usbHwDevice, usbDeviceDescriptor, usbStringDescriptors, { &usbConfiguration });
 
-static usb::UsbCtrlInEndpointT                                  ctrlInEndp(defaultHwCtrlInEndpoint);
-static usb::UsbControlPipe                                      defaultCtrlPipe(genericUsbDevice, ctrlInEndp);
+static usb::UsbControlPipe                      defaultCtrlPipe(genericUsbDevice, defaultCtrlInEndpoint);
 
-static usb::UsbCtrlOutEndpointT<stm32::Usb::CtrlOutEndpoint>    ctrlOutEndp(defaultCtrlPipe);
-static stm32::Usb::CtrlOutEndpoint                              defaultCtrlOutEndpoint(usbHwDevice, ctrlOutEndp, EP0_BUF.data, EP0_BUF.size);
+static usb::UsbCtrlOutEndpoint                  defaultCtrlOutEndp(defaultCtrlPipe);
+static stm32::Usb::CtrlOutEndpoint              defaultHwCtrlOutEndp(usbHwDevice, defaultCtrlOutEndp, EP0_BUF.data, EP0_BUF.size);
 
 static usb::UsbMouseApplicationT                 usbMouseApplication(usbInterface);
 
@@ -336,7 +335,7 @@ USB_HP_CAN1_TX_IRQHandler(void) {
 void
 USB_LP_CAN1_RX0_IRQHandler(void) {
     PHISCH_SETPIN(0, true);
-    usbCore.handleIrq();
+    usbHwDevice.handleIrq();
     PHISCH_SETPIN(0, false);
 }
 
